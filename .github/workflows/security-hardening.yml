@@ -1,0 +1,65 @@
+name: Security hardening
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: security-hardening-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify clean repository checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files '*.zip' | grep -q .; then
+            echo 'Generated ZIP archives must not be tracked.' >&2
+            git ls-files '*.zip' >&2
+            exit 1
+          fi
+          if git ls-files | grep -Eq '^(downloads|archives)/'; then
+            echo 'Runtime download/archive data must not be tracked.' >&2
+            git ls-files | grep -E '^(downloads|archives)/' >&2
+            exit 1
+          fi
+          secret_env_files="$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '(^|/)\.env\.example$' || true)"
+          if [ -n "$secret_env_files" ]; then
+            echo 'Environment secret files must not be tracked:' >&2
+            printf '%s\n' "$secret_env_files" >&2
+            exit 1
+          fi
+          test ! -d downloads
+          test ! -d archives
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Security unit tests
+        run: npm test
+
+      - name: Hardened application load smoke test
+        run: node -e "require('./app'); require('./socket/socket'); console.log('application load ok')"
+
+      - name: Dependency vulnerability gate
+        run: npm audit --omit=dev --audit-level=high

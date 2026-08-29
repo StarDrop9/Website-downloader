@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Website Downloader</title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><div aria-busy="true" id="progress" hidden aria-label="Loading" role="progressbar"></div></header>
+  <main>
+    <h1>Website Downloader</h1>
+    <p>Download browser-visible website files and assets for authorized offline use.</p>
+    <form id="downloadForm" autocomplete="off">
+      <input id="website" type="url" inputmode="url" placeholder="https://example.com" required size="48">
+      <button id="download" type="submit">Download</button>
+    </form>
+    <p id="nFilesP" hidden>Downloaded files: <strong id="nFiles">0</strong></p>
+    <pre class="log" id="log" aria-live="polite"></pre>
+    <button id="archiveDownload" type="button" hidden>Download website archive</button>
+  </main>
+</body>
+</html>
