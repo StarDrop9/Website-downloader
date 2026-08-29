@@ -34,7 +34,7 @@ Do not run the service as root.
 
 ## Clean checkout guarantee
 
-Generated content must never be part of the repository. A fresh checkout is expected to contain:
+Generated content must never be part of the current repository tree. A fresh checkout of the hardened head is expected to contain:
 
 - no tracked `*.zip` archives;
 - no `downloads/` runtime directory;
@@ -42,6 +42,8 @@ Generated content must never be part of the repository. A fresh checkout is expe
 - no real `.env` files, private keys, or local editor/runtime residue.
 
 GitHub Actions checks these conditions on the hardening branch and pull requests. `.gitignore` also excludes generated archives, runtime working data, secrets, keys, and common machine-specific files.
+
+**History note:** previously committed generated files may still exist in older Git history even though they are absent from the hardened working tree. If you want a future local checkout that does not download old repository history, use a shallow clone of the hardened/merged head (for example `git clone --depth 1 ...`). Rewriting the public repository's existing history is intentionally not part of this hardening change.
 
 ## Requirements
 
